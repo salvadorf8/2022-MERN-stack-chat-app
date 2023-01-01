@@ -9,7 +9,7 @@ import UsersList from './components/users-list.component';
 const Home = () => {
     const socket = io('http://localhost:5000');
     const [searchKey, setSearchKey] = useState('');
-    const { selectedChat } = useSelector((state) => state.userReducer);
+    const { selectedChat, user } = useSelector((state) => state.userReducer);
 
     /**
      * Task
@@ -18,12 +18,17 @@ const Home = () => {
      */
     useEffect(() => {
         // (eventName, data, callback)
-        socket.emit('send-new-message-to-all', { message: 'message to server' });
+        if (user) {
+            socket.emit('join-room', user._id);
 
-        socket.on('new-message-from-server', (data) => {
-            console.log('SF - message from server', data);
-        });
-    }, []);
+            // send new message to recipient (bob)
+            socket.emit('send-message', { text: 'Hi Bob, this is from John', sender: user._id, recipient: '639e5b37c8b659eb1cfd8999' });
+
+            socket.on('receive-message', (data) => {
+                console.log('SF - data', data);
+            });
+        }
+    }, [user]);
 
     return (
         <div className='flex gap-5'>
@@ -31,7 +36,7 @@ const Home = () => {
                 <UserSearch searchKey={searchKey} setSearchKey={setSearchKey} />
                 <UsersList searchKey={searchKey} />
             </div>
-            <div className='w-full'>{selectedChat && <ChatArea />}</div>
+            <div className='w-full'>{selectedChat && <ChatArea socket={socket} />}</div>
         </div>
     );
 };

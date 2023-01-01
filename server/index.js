@@ -21,11 +21,19 @@ const io = require('socket.io')(server, {
 // check the connection of socket from client
 io.on('connection', (socket) => {
     // socket events will be here
-    // console.log('connected with socketid', socket.id);
 
-    socket.on('send-new-message-to-all', (data) => {
-        console.log('SF - message from client', data);
-        socket.emit('new-message-from-server', data);
+    //  below both logged in users Bob, and John will be joined into a room
+    socket.on('join-room', (userId) => {
+        // console.log('user joined', userId);
+        // joining a user into a room
+        socket.join(userId);
+    });
+
+    // send message to recipient
+    // io.to will send message to the recipient that is in the room.
+    // Bob or John who ever is the sender, the other will be the recipient
+    socket.on('send-message', ({ text, sender, recipient }) => {
+        io.to(recipient).emit('receive-message', { text, sender });
     });
 });
 
