@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import moment from 'moment';
@@ -5,8 +6,9 @@ import moment from 'moment';
 import { ShowLoader, HideLoader } from '../../../redux/loaderSlice';
 import { SetAllChats, SetSelectedChat } from '../../../redux/userSlice';
 import { createNewChat } from '../../../api-calls/chats';
+import store from '../../../redux/store';
 
-const UsersList = ({ searchKey }) => {
+const UsersList = ({ searchKey, socket }) => {
     const dispatch = useDispatch();
     const { allUsers, allChats, user, selectedChat } = useSelector((state) => state.userReducer);
 
@@ -80,6 +82,38 @@ const UsersList = ({ searchKey }) => {
             );
         }
     };
+
+    /**
+     * SF - NOTE:
+     * unreadMessages: chat.unreadMessages + 1
+     *
+     * below means, if chat is not there, then use 0, if there, then +1
+     * unreadMessages: (chat?.unreadMessage || 0) +1
+     */
+
+    useEffect(() => {
+        socket.on('receive-message', (message) => {
+            // if the chat area opened is not equal to chat in message,
+            // then increase unread messages by 1 and update last message
+            const tempSelectedChat = store.getState().userReducer.selectedChat;
+            const tempAllChats = store.getState().userReducer.allChats;
+
+            if (tempSelectedChat?._id !== message.chat) {
+                const updatedAllChats = tempAllChats.map((chat) => {
+                    if (chat._id === message.chat) {
+                        return {
+                            ...chat,
+                            unreadMessages: (chat?.unreadMessages || 0) + 1,
+                            lastMessage: message
+                        };
+                    }
+                    return chat;
+                });
+
+                dispatch(SetAllChats(updatedAllChats));
+            }
+        });
+    }, []);
 
     return (
         <div className='flex flex-col gap-3 mt-5 lg:w-96 xl:w-96 md:w-60 sm:w-60'>

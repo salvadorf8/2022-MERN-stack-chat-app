@@ -23,7 +23,7 @@ const Home = () => {
         <div className='flex gap-5'>
             <div className='w-96 '>
                 <UserSearch searchKey={searchKey} setSearchKey={setSearchKey} />
-                <UsersList searchKey={searchKey} />
+                <UsersList searchKey={searchKey} socket={socket} />
             </div>
             <div className='w-full'>{selectedChat && <ChatArea socket={socket} />}</div>
         </div>
