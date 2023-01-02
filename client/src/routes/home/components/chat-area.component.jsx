@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
 import moment from 'moment';
+import store from '../../../redux/store';
 
 import { ShowLoader, HideLoader } from '../../../redux/loaderSlice';
 import { SetAllChats } from '../../../redux/userSlice';
 import { sendMessage, GetMessages } from '../../../api-calls/messages';
 import { ClearChatMessages } from '../../../api-calls/chats';
 
-const ChatArea = () => {
+const ChatArea = ({ socket }) => {
     const dispatch = useDispatch();
     const [newMessage, setNewMessage] = useState('');
     const { selectedChat, user, allChats } = useSelector((state) => state.userReducer);
@@ -17,20 +18,28 @@ const ChatArea = () => {
 
     const sendNewMessage = async () => {
         try {
-            dispatch(ShowLoader());
             const message = {
                 chat: selectedChat._id,
                 sender: user._id,
                 text: newMessage
             };
+            console.log('SF - selectedChat', selectedChat);
 
+            // send message to server using socket
+            socket.emit('send-message', {
+                ...message,
+                members: selectedChat.members.map((mem) => mem._id),
+                createdAt: moment(selectedChat.createdAt).format('DD-MM-YYYY hh:mm:ss'),
+                read: false
+            });
+
+            // send message to server to store into the DB
             const response = await sendMessage(message);
-            dispatch(HideLoader());
+
             if (response.success) {
                 setNewMessage('');
             }
         } catch (error) {
-            dispatch(HideLoader());
             toast.error(error.message);
         }
     };
@@ -76,7 +85,25 @@ const ChatArea = () => {
         if (selectedChat?.lastMessage?.sender !== user._id) {
             clearUnreadMessages();
         }
+
+        // receive message from server using socket
+        // reason for the .off().on() was to fix issue where multiple messages were being received and printed
+        socket.off('receive-message').on('receive-message', (message) => {
+            const tempSelectedChat = store.getState().userReducer.selectedChat;
+
+            // reason for the if statement is to fix issue where messages were being sent to everyone....
+            // only send to the matching chat
+            if (tempSelectedChat._id === message.chat) {
+                setMessages((prev) => [...prev, message]);
+            }
+        });
     }, [selectedChat]);
+
+    useEffect(() => {
+        // always scroll to bottom for messages id
+        const messagesContainer = document.getElementById('messages');
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }, [messages]);
 
     return (
         <div className='bg-white h-[82vh] border rounded-2xl w-full flex flex-col justify-between p-5'>
@@ -95,10 +122,9 @@ const ChatArea = () => {
             </div>
 
             {/** 2nd part chat messages */}
-            <div className='h-[55vh] overflow-y-scroll p-5'>
+            <div className='h-[55vh] overflow-y-scroll p-5' id='messages'>
                 <div className='flex flex-col gap-2'>
                     {messages.map((message) => {
-                        console.log('SF - wtf', message);
                         const isCurrentUserASender = message.sender === user._id;
 
                         return (

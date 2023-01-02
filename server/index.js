@@ -29,11 +29,9 @@ io.on('connection', (socket) => {
         socket.join(userId);
     });
 
-    // send message to recipient
-    // io.to will send message to the recipient that is in the room.
-    // Bob or John who ever is the sender, the other will be the recipient
-    socket.on('send-message', ({ text, sender, recipient }) => {
-        io.to(recipient).emit('receive-message', { text, sender });
+    // send message to clients (who are presint in members array)
+    socket.on('send-message', (message) => {
+        io.to(message.members[0]).to(message.members[1]).emit('receive-message', message);
     });
 });
 
