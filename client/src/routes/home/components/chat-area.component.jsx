@@ -46,9 +46,13 @@ const ChatArea = ({ socket }) => {
 
     const clearUnreadMessages = async () => {
         try {
-            dispatch(ShowLoader());
+            socket.emit('clear-unread-messages', {
+                chat: selectedChat._id,
+                members: selectedChat.members.map((mem) => mem._id)
+            });
+
             const response = await ClearChatMessages(selectedChat._id);
-            dispatch(HideLoader);
+
             if (response.success) {
                 const updatedChats = allChats.map((chat) => {
                     if (chat._id === selectedChat._id) {
@@ -61,7 +65,6 @@ const ChatArea = ({ socket }) => {
                 dispatch(SetAllChats(updatedChats));
             }
         } catch (error) {
-            dispatch(HideLoader);
             toast.error(error.message);
         }
     };
@@ -74,7 +77,7 @@ const ChatArea = ({ socket }) => {
             dispatch(HideLoader());
             setMessages(response.data);
         } catch (error) {
-            dispatch(ShowLoader());
+            dispatch(HideLoader());
             toast.error(error.message);
         }
     };
@@ -95,6 +98,52 @@ const ChatArea = ({ socket }) => {
             // only send to the matching chat
             if (tempSelectedChat._id === message.chat) {
                 setMessages((prev) => [...prev, message]);
+            }
+
+            // reason for the if statement is to fix issue where reciever has chat opened, but still getting unread notification
+            // if selectedCat is equal to message.chat and is not the sender
+            if (tempSelectedChat._id === message.chat && message.sender !== user._id) {
+                clearUnreadMessages();
+            }
+        });
+
+        // clear unread messages from server using socket
+        socket.on('unread-messages-cleared', (data) => {
+            const tempAllChats = store.getState().userReducer.allChats;
+            const tempSelectedChat = store.getState().userReducer.selectedChat;
+
+            if (data.chat === tempSelectedChat._id) {
+                // update unread messages count in selected chat
+                const updatedChats = tempAllChats.map((chat) => {
+                    if (chat._id === data.chat) {
+                        return {
+                            ...chat,
+                            unreadMessages: 0
+                        };
+                    }
+                    return chat;
+                });
+                dispatch(SetAllChats(updatedChats));
+
+                // set all messages as read
+                // ------ keep in mind, we cannot access state in socket.io ------
+                // const updatedMessages = messages.map((message) => {
+                //     return {
+                //         ...message,
+                //         read: true
+                //     };
+                // });
+                // setMessages(updatedMessages);
+
+                // has to be written like this to get the previous state
+                setMessages((prev) => {
+                    return prev.map((message) => {
+                        return {
+                            ...message,
+                            read: true
+                        };
+                    });
+                });
             }
         });
     }, [selectedChat]);

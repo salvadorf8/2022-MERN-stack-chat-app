@@ -59,7 +59,7 @@ const UsersList = ({ searchKey, socket }) => {
     const getUnreadMessages = (userObj) => {
         const chat = allChats.find((chat) => chat.members.map((mem) => mem._id).includes(userObj._id));
 
-        if (chat && chat?.unreadMessages && chat?.lastMessage.sender !== user._id) {
+        if (chat && chat?.unreadMessages && chat?.lastMessage?.sender !== user._id) {
             return <div className='bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center'>{chat?.unreadMessages}</div>;
         }
     };
@@ -98,7 +98,9 @@ const UsersList = ({ searchKey, socket }) => {
             const tempSelectedChat = store.getState().userReducer.selectedChat;
             const tempAllChats = store.getState().userReducer.allChats;
 
+            // if the received message is not part of a currently selected chat
             if (tempSelectedChat?._id !== message.chat) {
+                // update the count and lastMessage until that chat is opened
                 const updatedAllChats = tempAllChats.map((chat) => {
                     if (chat._id === message.chat) {
                         return {

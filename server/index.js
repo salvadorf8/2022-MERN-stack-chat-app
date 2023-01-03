@@ -29,9 +29,13 @@ io.on('connection', (socket) => {
         socket.join(userId);
     });
 
-    // send message to clients (who are presint in members array)
+    // send message to clients (who are present in members array)
     socket.on('send-message', (message) => {
         io.to(message.members[0]).to(message.members[1]).emit('receive-message', message);
+    });
+
+    socket.on('clear-unread-messages', (data) => {
+        io.to(data.members[0]).to(data.members[1]).emit('unread-messages-cleared', data);
     });
 });
 
