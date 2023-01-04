@@ -37,6 +37,11 @@ io.on('connection', (socket) => {
     socket.on('clear-unread-messages', (data) => {
         io.to(data.members[0]).to(data.members[1]).emit('unread-messages-cleared', data);
     });
+
+    // typing event
+    socket.on('typing', (data) => {
+        io.to(data.members[0]).to(data.members[1]).emit('started-typing', data);
+    });
 });
 
 app.use('/api/users', usersRoute);

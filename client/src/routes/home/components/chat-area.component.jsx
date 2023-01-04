@@ -11,6 +11,7 @@ import { ClearChatMessages } from '../../../api-calls/chats';
 
 const ChatArea = ({ socket }) => {
     const dispatch = useDispatch();
+    const [isRecipientTyping, setIsRecipientTyping] = useState(false);
     const [newMessage, setNewMessage] = useState('');
     const { selectedChat, user, allChats } = useSelector((state) => state.userReducer);
     const [messages = [], setMessages] = useState([]);
@@ -146,13 +147,26 @@ const ChatArea = ({ socket }) => {
                 });
             }
         });
+
+        // recipient typing
+        socket.on('started-typing', (data) => {
+            const selectedChat = store.getState().userReducer.selectedChat;
+
+            if (data.chat === selectedChat._id && data.sender !== user._id) {
+                setIsRecipientTyping(true);
+            }
+
+            setTimeout(() => {
+                setIsRecipientTyping(false);
+            }, 1500);
+        });
     }, [selectedChat]);
 
     useEffect(() => {
         // always scroll to bottom for messages id
         const messagesContainer = document.getElementById('messages');
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }, [messages]);
+    }, [messages, isRecipientTyping]);
 
     return (
         <div className='bg-white h-[82vh] border rounded-2xl w-full flex flex-col justify-between p-5'>
@@ -186,12 +200,26 @@ const ChatArea = ({ socket }) => {
                             </div>
                         );
                     })}
+                    {isRecipientTyping && <h1 className='bg-blue-100 text-primary p-2 rounded-xl w-max'>typing...</h1>}
                 </div>
             </div>
             {/** 3rd part chat input */}
             <div>
                 <div className='h-18 rounded-xl border-gray-300 shadow border flex justify-between p-2 items-center'>
-                    <input type='text' value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder='Type a message' className='w-[90%] border-0 h-full rounded-xl focus:border-none' />
+                    <input
+                        type='text'
+                        value={newMessage}
+                        onChange={(e) => {
+                            setNewMessage(e.target.value);
+                            socket.emit('typing', {
+                                chat: selectedChat._id,
+                                members: selectedChat.members.map((mem) => mem._id),
+                                sender: user._id
+                            });
+                        }}
+                        placeholder='Type a message'
+                        className='w-[90%] border-0 h-full rounded-xl focus:border-none'
+                    />
                     <button className='bg-primary text-white py-1 px-5 rounded h-max' onClick={sendNewMessage}>
                         <i className='ri-send-plane-2-line text-white'></i>
                     </button>
