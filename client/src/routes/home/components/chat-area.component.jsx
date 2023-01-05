@@ -24,7 +24,6 @@ const ChatArea = ({ socket }) => {
                 sender: user._id,
                 text: newMessage
             };
-            console.log('SF - selectedChat', selectedChat);
 
             // send message to server using socket
             socket.emit('send-message', {
@@ -81,6 +80,27 @@ const ChatArea = ({ socket }) => {
             dispatch(HideLoader());
             toast.error(error.message);
         }
+    };
+
+    const getDateInRegularFormat = (date) => {
+        let result = '';
+
+        // if date is today then return time in hh:mm format
+        if (moment(date).isSame(moment(), 'day')) {
+            result = moment(date).format('hh:mm');
+        }
+
+        // if date is yesterday return yesterday and time in hh:mm format
+        else if (moment(date).isSame(moment().subtract(1, 'day'), 'day')) {
+            result = `Yesterday ${moment(date).format('hh:mm')}`;
+        }
+
+        // if date is this year return date and time in MMM DD hh:mm
+        else if (moment(date).isSame(moment(), 'year')) {
+            result = moment(date).format('MMM DD hh:mm');
+        }
+
+        return result;
     };
 
     useEffect(() => {
@@ -187,14 +207,14 @@ const ChatArea = ({ socket }) => {
             {/** 2nd part chat messages */}
             <div className='h-[55vh] overflow-y-scroll p-5' id='messages'>
                 <div className='flex flex-col gap-2'>
-                    {messages.map((message) => {
+                    {messages.map((message, index) => {
                         const isCurrentUserASender = message.sender === user._id;
 
                         return (
-                            <div className={`flex ${isCurrentUserASender && 'justify-end'}`} key={message._id}>
+                            <div className={`flex ${isCurrentUserASender && 'justify-end'}`}>
                                 <div className='flex flex-col gap-1'>
                                     <h1 className={`${isCurrentUserASender ? 'bg-primary text-white rounded-bl-none' : 'bg-gray-300 text-primary rounded-tr-none'} p-2 rounded-xl `}>{message.text}</h1>
-                                    <h1 className='text-gray-500 text-sm '>{moment(message.createdAt).format('hh:mm A')}</h1>
+                                    <h1 className='text-gray-500 text-sm '>{getDateInRegularFormat(message.createdAt)}</h1>
                                 </div>
                                 {isCurrentUserASender && <i className={`ri-check-double-line text-lg p-1 ${message.read ? 'text-green-700' : 'text-gray-400'}`}></i>}
                             </div>

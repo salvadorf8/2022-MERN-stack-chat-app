@@ -8,7 +8,7 @@ import { SetAllChats, SetSelectedChat } from '../../../redux/userSlice';
 import { createNewChat } from '../../../api-calls/chats';
 import store from '../../../redux/store';
 
-const UsersList = ({ searchKey, socket }) => {
+const UsersList = ({ searchKey, socket, onlineUsers }) => {
     const dispatch = useDispatch();
     const { allUsers, allChats, user, selectedChat } = useSelector((state) => state.userReducer);
 
@@ -64,6 +64,27 @@ const UsersList = ({ searchKey, socket }) => {
         }
     };
 
+    const getDateInRegularFormat = (date) => {
+        let result = '';
+
+        // if date is today then return time in hh:mm format
+        if (moment(date).isSame(moment(), 'day')) {
+            result = moment(date).format('hh:mm');
+        }
+
+        // if date is yesterday return yesterday and time in hh:mm format
+        else if (moment(date).isSame(moment().subtract(1, 'day'), 'day')) {
+            result = `Yesterday ${moment(date).format('hh:mm')}`;
+        }
+
+        // if date is this year return date and time in MMM DD hh:mm
+        else if (moment(date).isSame(moment(), 'year')) {
+            result = moment(date).format('MMM DD hh:mm');
+        }
+
+        return result;
+    };
+
     const getLastMessage = (userObj) => {
         const chat = allChats.find((chat) => chat.members.map((member) => member._id).includes(userObj._id));
 
@@ -77,7 +98,7 @@ const UsersList = ({ searchKey, socket }) => {
                         {lastMessagePerson}
                         {chat?.lastMessage?.text}
                     </h1>
-                    <h1 className='text-gray-500 text-sm'>{moment(chat?.lastMessage?.createdAt).format('hh:mm A')}</h1>
+                    <h1 className='text-gray-500 text-sm'>{getDateInRegularFormat(chat?.lastMessage?.createdAt)}</h1>
                 </div>
             );
         }
@@ -96,7 +117,7 @@ const UsersList = ({ searchKey, socket }) => {
             // if the chat area opened is not equal to chat in message,
             // then increase unread messages by 1 and update last message
             const tempSelectedChat = store.getState().userReducer.selectedChat;
-            const tempAllChats = store.getState().userReducer.allChats;
+            let tempAllChats = store.getState().userReducer.allChats;
 
             // if the received message is not part of a currently selected chat
             if (tempSelectedChat?._id !== message.chat) {
@@ -106,14 +127,21 @@ const UsersList = ({ searchKey, socket }) => {
                         return {
                             ...chat,
                             unreadMessages: (chat?.unreadMessages || 0) + 1,
-                            lastMessage: message
+                            lastMessage: message,
+                            updatedAt: message.createdAt
                         };
                     }
                     return chat;
                 });
-
-                dispatch(SetAllChats(updatedAllChats));
+                tempAllChats = updatedAllChats;
             }
+            // new logic to sort latest message on top
+            const latestChat = tempAllChats.find((chat) => chat._id === message.chat);
+            const otherChats = tempAllChats.filter((chat) => chat._id !== message.chat);
+
+            tempAllChats = [latestChat, ...otherChats];
+
+            dispatch(SetAllChats(tempAllChats));
         });
     }, []);
 
@@ -121,8 +149,11 @@ const UsersList = ({ searchKey, socket }) => {
         <div className='flex flex-col gap-3 mt-5 lg:w-96 xl:w-96 md:w-60 sm:w-60'>
             {getData().map((chatObjOrUserObj) => {
                 let userObj = chatObjOrUserObj;
-                if (chatObjOrUserObj.members) {
+
+                if (chatObjOrUserObj.members && chatObjOrUserObj.members[0]._id === user._id) {
                     userObj = chatObjOrUserObj.members.find((mem) => mem._id !== user._id);
+                } else {
+                    return false;
                 }
 
                 return (
@@ -132,6 +163,11 @@ const UsersList = ({ searchKey, socket }) => {
                             {!userObj.profilePic && (
                                 <div className='bg-gray-400 rounded-full h-12 w-12 flex items-center justify-center relative'>
                                     <h1 className='uppercase text-xl font-semibold text-white'>{userObj.name[0]}</h1>
+                                    {onlineUsers.includes(userObj._id) && (
+                                        <div>
+                                            <div className='bg-green-700 h-3 w-3 rounded-full absolute bottom-[2px] right-1'></div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                             <div className='flex flex-col gap-1'>
