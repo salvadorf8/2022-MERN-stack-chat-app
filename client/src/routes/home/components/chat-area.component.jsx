@@ -2,15 +2,17 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
 import moment from 'moment';
-import store from '../../../redux/store';
+import EmojiPicker from 'emoji-picker-react';
 
 import { ShowLoader, HideLoader } from '../../../redux/loaderSlice';
 import { SetAllChats } from '../../../redux/userSlice';
 import { sendMessage, GetMessages } from '../../../api-calls/messages';
 import { ClearChatMessages } from '../../../api-calls/chats';
+import store from '../../../redux/store';
 
 const ChatArea = ({ socket }) => {
     const dispatch = useDispatch();
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const [isRecipientTyping, setIsRecipientTyping] = useState(false);
     const [newMessage, setNewMessage] = useState('');
     const { selectedChat, user, allChats } = useSelector((state) => state.userReducer);
@@ -38,6 +40,7 @@ const ChatArea = ({ socket }) => {
 
             if (response.success) {
                 setNewMessage('');
+                setShowEmojiPicker(false);
             }
         } catch (error) {
             toast.error(error.message);
@@ -224,26 +227,36 @@ const ChatArea = ({ socket }) => {
                 </div>
             </div>
             {/** 3rd part chat input */}
-            <div>
-                <div className='h-18 rounded-xl border-gray-300 shadow border flex justify-between p-2 items-center'>
-                    <input
-                        type='text'
-                        value={newMessage}
-                        onChange={(e) => {
-                            setNewMessage(e.target.value);
-                            socket.emit('typing', {
-                                chat: selectedChat._id,
-                                members: selectedChat.members.map((mem) => mem._id),
-                                sender: user._id
-                            });
-                        }}
-                        placeholder='Type a message'
-                        className='w-[90%] border-0 h-full rounded-xl focus:border-none'
-                    />
-                    <button className='bg-primary text-white py-1 px-5 rounded h-max' onClick={sendNewMessage}>
-                        <i className='ri-send-plane-2-line text-white'></i>
-                    </button>
-                </div>
+
+            <div className='h-18 rounded-xl border-gray-300 shadow border flex justify-between p-2 items-center relative'>
+                {showEmojiPicker && (
+                    <div className='absolute -top-96 left-0'>
+                        <EmojiPicker
+                            height={350}
+                            onEmojiClick={(e) => {
+                                setNewMessage(newMessage + e.emoji);
+                            }}
+                        />
+                    </div>
+                )}
+                <i className='ri-emotion-line cursor-pointer' onClick={() => setShowEmojiPicker(true)}></i>
+                <input
+                    type='text'
+                    value={newMessage}
+                    onChange={(e) => {
+                        setNewMessage(e.target.value);
+                        socket.emit('typing', {
+                            chat: selectedChat._id,
+                            members: selectedChat.members.map((mem) => mem._id),
+                            sender: user._id
+                        });
+                    }}
+                    placeholder='Type a message'
+                    className='w-[90%] border-0 h-full rounded-xl focus:border-none'
+                />
+                <button className='bg-primary text-white py-1 px-5 rounded h-max' onClick={sendNewMessage}>
+                    <i className='ri-send-plane-2-line text-white'></i>
+                </button>
             </div>
         </div>
     );
