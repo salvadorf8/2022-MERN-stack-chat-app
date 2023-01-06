@@ -19,12 +19,13 @@ const ChatArea = ({ socket }) => {
     const [messages = [], setMessages] = useState([]);
     const recipientUser = selectedChat.members.find((mem) => mem._id !== user._id);
 
-    const sendNewMessage = async () => {
+    const sendNewMessage = async (image = '') => {
         try {
             const message = {
                 chat: selectedChat._id,
                 sender: user._id,
-                text: newMessage
+                text: newMessage,
+                image
             };
 
             // send message to server using socket
@@ -191,6 +192,16 @@ const ChatArea = ({ socket }) => {
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }, [messages, isRecipientTyping]);
 
+    const onUploadImageClick = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader(file);
+        reader.readAsDataURL(file);
+
+        reader.onloadend = async () => {
+            sendNewMessage(reader.result);
+        };
+    };
+
     return (
         <div className='bg-white h-[82vh] border rounded-2xl w-full flex flex-col justify-between p-5'>
             {/** 1st part receipient user */}
@@ -216,7 +227,9 @@ const ChatArea = ({ socket }) => {
                         return (
                             <div className={`flex ${isCurrentUserASender && 'justify-end'}`}>
                                 <div className='flex flex-col gap-1'>
-                                    <h1 className={`${isCurrentUserASender ? 'bg-primary text-white rounded-bl-none' : 'bg-gray-300 text-primary rounded-tr-none'} p-2 rounded-xl `}>{message.text}</h1>
+                                    {message.text && <h1 className={`${isCurrentUserASender ? 'bg-primary text-white rounded-bl-none' : 'bg-gray-300 text-primary rounded-tr-none'} p-2 rounded-xl `}>{message.text}</h1>}
+
+                                    {message.image && <img src={message.image} alt='message file' className='w-24 h-24 rounded-xl' />}
                                     <h1 className='text-gray-500 text-sm '>{getDateInRegularFormat(message.createdAt)}</h1>
                                 </div>
                                 {isCurrentUserASender && <i className={`ri-check-double-line text-lg p-1 ${message.read ? 'text-green-700' : 'text-gray-400'}`}></i>}
@@ -239,7 +252,14 @@ const ChatArea = ({ socket }) => {
                         />
                     </div>
                 )}
-                <i className='ri-emotion-line cursor-pointer' onClick={() => setShowEmojiPicker(true)}></i>
+                <div className='flex gap-2 text-xl'>
+                    <label for='file'>
+                        <i className='ri-link cursor-pointer text-xl'></i>
+                        <input type='file' id='file' style={{ display: 'none' }} accept='image/gif, image/jpeg, image/jpg, image/png' onChange={onUploadImageClick} />
+                    </label>
+
+                    <i className='ri-emotion-line cursor-pointer text-xl' onClick={() => setShowEmojiPicker(true)}></i>
+                </div>
                 <input
                     type='text'
                     value={newMessage}
@@ -254,7 +274,7 @@ const ChatArea = ({ socket }) => {
                     placeholder='Type a message'
                     className='w-[90%] border-0 h-full rounded-xl focus:border-none'
                 />
-                <button className='bg-primary text-white py-1 px-5 rounded h-max' onClick={sendNewMessage}>
+                <button className='bg-primary text-white py-1 px-5 rounded h-max' onClick={() => sendNewMessage('')}>
                     <i className='ri-send-plane-2-line text-white'></i>
                 </button>
             </div>
