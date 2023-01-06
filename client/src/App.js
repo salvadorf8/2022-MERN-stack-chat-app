@@ -7,6 +7,7 @@ import ProtectedRoute from './components/protected-route.component';
 import Home from './routes/home/home.component';
 import Login from './routes/login/login.component';
 import Register from './routes/register/register.component';
+import Profile from './routes/profile/profile.component';
 
 const App = () => {
     const { loader } = useSelector((state) => state.loaderReducer);
@@ -22,6 +23,14 @@ const App = () => {
                         element={
                             <ProtectedRoute>
                                 <Home />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path='/profile'
+                        element={
+                            <ProtectedRoute>
+                                <Profile />
                             </ProtectedRoute>
                         }
                     />

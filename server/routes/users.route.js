@@ -2,6 +2,8 @@ const User = require('../models/user.model');
 const router = require('express').Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const cloudinary = require('../cloudinary');
+
 const authMiddleware = require('../middlewares/auth.middleware');
 
 // user registration
@@ -78,6 +80,28 @@ router.get('/get-all-users', authMiddleware, async (req, res) => {
 
             data: allUsers
         });
+    } catch (error) {
+        res.send({
+            success: false,
+            message: error.message
+        });
+    }
+});
+
+// update user profile picture
+router.post('/update-profile-picture', authMiddleware, async (req, res) => {
+    try {
+        const image = req.body.image;
+
+        // upload image to cloudinary and get url
+        const uploadedImage = await cloudinary.v2.uploader.upload(image, {
+            folder: 'chat-app'
+        });
+
+        // update user profile picture
+        const user = await User.findOneAndUpdate({ _id: req.body.userId }, { profilePic: uploadedImage.secure_url }, { new: true });
+
+        res.send({ success: true, message: 'Profile picture updated successfully', data: user });
     } catch (error) {
         res.send({
             success: false,

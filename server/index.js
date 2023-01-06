@@ -7,7 +7,11 @@ const chatsRoute = require('./routes/chats.route');
 const messagesRoute = require('./routes/messages.route');
 
 const app = express();
-app.use(express.json());
+app.use(
+    express.json({
+        limit: '50mb'
+    })
+);
 
 // socket.io initialization
 const server = require('http').createServer(app);
