@@ -9,7 +9,7 @@ import { SetAllUsers, SetUser, SetAllChats } from '../redux/userSlice';
 import { getAllUsers, getCurrentUser } from '../api-calls/users';
 import { getAllChats } from '../api-calls/chats';
 
-const socket = io('http://localhost:5000');
+const socket = io(process.env.SOCKET_IO_SERVER_URL);
 
 const ProtectedRoute = ({ children }) => {
     const navigate = useNavigate();

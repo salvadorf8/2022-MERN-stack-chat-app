@@ -70,6 +70,17 @@ app.use('/api/messages', messagesRoute);
 
 const port = process.env.PORT || 5000;
 
+if (process.env.NODE_ENV === 'production') {
+    const path = require('path');
+    __dirname = path.resolve();
+
+    app.use(express.static(path.join(_dirname, '/client/build')));
+
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
+    });
+}
+
 server.listen(port, () => {
     console.log('listening on 5000');
 });
