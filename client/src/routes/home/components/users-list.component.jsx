@@ -172,26 +172,23 @@ const UsersList = ({ searchKey, socket, onlineUsers, setSearchKey }) => {
                             {userObj.profilePic && (
                                 <div className='relative'>
                                     <img src={userObj.profilePic} alt='profile pic' className='rounded-full w-12 h-12' />
-                                    {onlineUsers.includes(userObj._id) && (
-                                        <div>
-                                            <div className='bg-green-700 h-3 w-3 rounded-full absolute bottom-[2px] right-1'></div>
-                                        </div>
-                                    )}
                                 </div>
                             )}
                             {!userObj.profilePic && (
                                 <div className='bg-gray-400 rounded-full h-12 w-12 flex items-center justify-center relative'>
                                     <h1 className='uppercase text-xl font-semibold text-white'>{userObj.name[0]}</h1>
-                                    {onlineUsers.includes(userObj._id) && (
-                                        <div>
-                                            <div className='bg-green-700 h-3 w-3 rounded-full absolute bottom-[2px] right-1'></div>
-                                        </div>
-                                    )}
                                 </div>
                             )}
                             <div className='flex flex-col gap-1'>
                                 <div className='flex gap-1'>
-                                    <h1>{userObj.name}</h1>
+                                    <div className='flex gap-1 items-center'>
+                                        <h1>{userObj.name}</h1>
+                                        {onlineUsers.includes(userObj._id) && (
+                                            <div>
+                                                <div className='bg-green-700 h-3 w-3 rounded-full'></div>
+                                            </div>
+                                        )}
+                                    </div>
                                     {getUnreadMessages(userObj)}
                                 </div>
                                 {getLastMessage(userObj)}

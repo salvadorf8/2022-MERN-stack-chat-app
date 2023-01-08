@@ -57,6 +57,11 @@ io.on('connection', (socket) => {
 
         io.emit('online-users-updated', onlineUsers);
     });
+
+    socket.on('went-offline', (userId) => {
+        onlineUsers = onlineUsers.filter((user) => user !== userId);
+        io.emit('online-users-updated', onlineUsers);
+    });
 });
 
 app.use('/api/users', usersRoute);

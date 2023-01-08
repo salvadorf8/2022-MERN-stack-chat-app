@@ -2,11 +2,14 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
+import { io } from 'socket.io-client';
 
 import { ShowLoader, HideLoader } from '../redux/loaderSlice';
 import { SetAllUsers, SetUser, SetAllChats } from '../redux/userSlice';
 import { getAllUsers, getCurrentUser } from '../api-calls/users';
 import { getAllChats } from '../api-calls/chats';
+
+const socket = io('http://localhost:5000');
 
 const ProtectedRoute = ({ children }) => {
     const navigate = useNavigate();
@@ -67,6 +70,7 @@ const ProtectedRoute = ({ children }) => {
                     <i
                         className='ri-logout-circle-r-line ml-5 text-xl cursor-pointer text-primary'
                         onClick={() => {
+                            socket.emit('went-offline', user._id);
                             localStorage.removeItem('token');
                             navigate('/login');
                         }}></i>

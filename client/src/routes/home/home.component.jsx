@@ -5,6 +5,7 @@ import { io } from 'socket.io-client';
 import UserSearch from './components/users-search.component';
 import ChatArea from './components/chat-area.component';
 import UsersList from './components/users-list.component';
+
 // moved to be global, because it did not work inside the const Home
 const socket = io('http://localhost:5000');
 
