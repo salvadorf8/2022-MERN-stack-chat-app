@@ -5,14 +5,14 @@ import moment from 'moment';
 
 import { ShowLoader, HideLoader } from '../../../redux/loaderSlice';
 import { SetAllChats, SetSelectedChat } from '../../../redux/userSlice';
-import { createNewChat } from '../../../api-calls/chats';
+import { createNewChat, getAllChats } from '../../../api-calls/chats';
 import store from '../../../redux/store';
 
-const UsersList = ({ searchKey, socket, onlineUsers }) => {
+const UsersList = ({ searchKey, socket, onlineUsers, setSearchKey }) => {
     const dispatch = useDispatch();
     const { allUsers, allChats, user, selectedChat } = useSelector((state) => state.userReducer);
 
-    const handleOnClickCreateChat = async (recipientUserId) => {
+    const handleCreateNewChat = async (recipientUserId) => {
         try {
             dispatch(ShowLoader());
             const response = await createNewChat([user._id, recipientUserId]);
@@ -23,6 +23,7 @@ const UsersList = ({ searchKey, socket, onlineUsers }) => {
                 const updatedChats = [...allChats, newChat];
                 dispatch(SetAllChats(updatedChats));
                 dispatch(SetSelectedChat(newChat));
+                setSearchKey('');
             } else {
                 toast.error(response.message);
             }
@@ -32,20 +33,25 @@ const UsersList = ({ searchKey, socket, onlineUsers }) => {
         }
     };
 
-    const handleOnClickOpenChat = (recipientUserId) => {
+    const handleOpenChat = (recipientUserId) => {
         const chat = allChats.find((chat) => chat.members.map((mem) => mem._id).includes(user._id) && chat.members.map((mem) => mem._id).includes(recipientUserId));
+
         if (chat) {
             dispatch(SetSelectedChat(chat));
         }
     };
 
     const getData = () => {
-        // if search key is empty then return all chats else return filtered chats and users
-        if (searchKey === '') {
-            return allChats;
-        }
+        try {
+            // if search key is empty then return all chats else return filtered chats and users
+            if (searchKey === '') {
+                return allChats || [];
+            }
 
-        return allUsers.filter((user) => user.name.toLowerCase().includes(searchKey.toLowerCase()));
+            return allUsers.filter((user) => user.name.toLowerCase().includes(searchKey.toLowerCase()) || []);
+        } catch (error) {
+            return [];
+        }
     };
 
     const getIsSelectedChatOrNot = (userObj) => {
@@ -86,15 +92,16 @@ const UsersList = ({ searchKey, socket, onlineUsers }) => {
     };
 
     const getLastMessage = (userObj) => {
-        const chat = allChats.find((chat) => chat.members.map((member) => member._id).includes(userObj._id));
+        const chat = allChats.find((chat) => chat.members.map((mem) => mem._id).includes(userObj._id));
 
         if (!chat || !chat.lastMessage) {
             return '';
         } else {
             const lastMessagePerson = chat?.lastMessage?.sender === user._id ? 'You : ' : '';
+
             return (
                 <div className='flex justify-between w-72'>
-                    <h1 className='text-gray-500 text-sm'>
+                    <h1 className='text-gray-600 text-sm'>
                         {lastMessagePerson}
                         {chat?.lastMessage?.text}
                     </h1>
@@ -113,11 +120,16 @@ const UsersList = ({ searchKey, socket, onlineUsers }) => {
      */
 
     useEffect(() => {
-        socket.on('receive-message', (message) => {
+        socket.on('receive-message', async (message) => {
             // if the chat area opened is not equal to chat in message,
             // then increase unread messages by 1 and update last message
             const tempSelectedChat = store.getState().userReducer.selectedChat;
             let tempAllChats = store.getState().userReducer.allChats;
+
+            if (!tempAllChats.length) {
+                tempAllChats = await getAllChats();
+                dispatch(SetAllChats(tempAllChats.data));
+            }
 
             // if the received message is not part of a currently selected chat
             if (tempSelectedChat?._id !== message.chat) {
@@ -150,16 +162,23 @@ const UsersList = ({ searchKey, socket, onlineUsers }) => {
             {getData().map((chatObjOrUserObj) => {
                 let userObj = chatObjOrUserObj;
 
-                if (chatObjOrUserObj.members && chatObjOrUserObj.members[0]._id === user._id) {
+                if (chatObjOrUserObj.members) {
                     userObj = chatObjOrUserObj.members.find((mem) => mem._id !== user._id);
-                } else {
-                    return false;
                 }
 
                 return (
-                    <div className={`shadow-sm border p-2 rounded-xl bg-white flex justify-between items-center cursor-pointer ${getIsSelectedChatOrNot(userObj) && 'border-primary border-2'} `} key={userObj._id} onClick={() => handleOnClickOpenChat(userObj._id)}>
+                    <div className={`shadow-sm border p-2 rounded-xl bg-white flex justify-between items-center cursor-pointer ${getIsSelectedChatOrNot(userObj) && 'border-primary border-2'} `} key={userObj._id} onClick={() => handleOpenChat(userObj._id)}>
                         <div className='flex gap-5 items-center'>
-                            {userObj.profilePic && <img src={userObj.profilePic} alt='profile pic' className='w-10 h-10 rounded-full' />}
+                            {userObj.profilePic && (
+                                <div className='relative'>
+                                    <img src={userObj.profilePic} alt='profile pic' className='rounded-full w-12 h-12' />
+                                    {onlineUsers.includes(userObj._id) && (
+                                        <div>
+                                            <div className='bg-green-700 h-3 w-3 rounded-full absolute bottom-[2px] right-1'></div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                             {!userObj.profilePic && (
                                 <div className='bg-gray-400 rounded-full h-12 w-12 flex items-center justify-center relative'>
                                     <h1 className='uppercase text-xl font-semibold text-white'>{userObj.name[0]}</h1>
@@ -178,7 +197,7 @@ const UsersList = ({ searchKey, socket, onlineUsers }) => {
                                 {getLastMessage(userObj)}
                             </div>
                         </div>
-                        <div onClick={() => handleOnClickCreateChat(userObj._id)}>{!allChats.find((chat) => chat.members.map((mem) => mem._id).includes(userObj._id)) && <button className='border-primary border text-primary bg-white p-1 rounded'>Create Chat</button>}</div>
+                        <div onClick={() => handleCreateNewChat(userObj._id)}>{!allChats.find((chat) => chat.members.map((mem) => mem._id).includes(userObj._id)) && <button className='border-primary border text-primary bg-white p-1 rounded'>Create Chat</button>}</div>
                     </div>
                 );
             })}

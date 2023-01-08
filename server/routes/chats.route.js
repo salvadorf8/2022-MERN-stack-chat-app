@@ -31,14 +31,14 @@ router.get('/get-all-chats', authMiddleware, async (req, res) => {
             .populate('lastMessage')
             .sort({ updatedAt: -1 });
         res.send({
-            message: 'chats fetched successfully',
             success: true,
+            message: 'chats fetched successfully',
             data: chats
         });
     } catch (error) {
         res.send({
-            message: 'Error fetching chats',
             success: false,
+            message: 'Error fetching chats',
             error: error.message
         });
     }
@@ -58,10 +58,12 @@ router.post('/clear-unread-messages', authMiddleware, async (req, res) => {
         const updatedChat = await Chat.findByIdAndUpdate(req.body.chat, { unreadMessages: 0 }, { new: true }).populate('members').populate('lastMessage');
 
         await Message.updateMany({ chat: req.body.chat, read: false }, { read: true });
-        // await Message.updateMany({ chat: req.body.chat, read: false }, { $set: { read: true }});
-        // await Message.updateMany({ read: false, $set: { read: true } });
 
-        res.send({ success: true, message: 'Unread messages cleared successfully', data: updatedChat });
+        res.send({
+            success: true,
+            message: 'Unread messages cleared successfully',
+            data: updatedChat
+        });
     } catch (error) {
         res.send({
             success: false,

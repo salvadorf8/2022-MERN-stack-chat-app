@@ -47,20 +47,22 @@ const Profile = () => {
 
     return (
         user && (
-            <div className='text-xl font-semibold uppercase text-gray-500 flex flex-col gap-2 shadow-md border w-max border-gray-300'>
-                <h1>{user.name}</h1>
-                <h1>{user.email}</h1>
-                <h1>createdAt: {moment(user.createdAt).format('MMM Do YYYY, h:mm:ss a')}</h1>
-                {image && <img src={image} alt='profile pic' className='w-32 h-32 rounded-full' />}
+            <div className='flex items-center justify-center h-[80vh]'>
+                <div className='text-xl font-semibold uppercase text-gray-500 flex flex-col gap-2 p-2 shadow-md border w-max border-gray-300 rounded'>
+                    <h1>{user.name}</h1>
+                    <h1>{user.email}</h1>
+                    <h1>createdAt: {moment(user.createdAt).format('MMM Do YYYY, h:mm:ss a')}</h1>
+                    {image && <img src={image} alt='profile pic' className='w-32 h-32 rounded-full' />}
 
-                <div className='flex gap-2'>
-                    <label htmlFor='file-input' className='cursor-pointer'>
-                        Update Profile Pic
-                    </label>
-                    <input type='file' id='file-input' className='file-input' onChange={onFileSelect} />
-                    <button className='contained-btn' onClick={updateProfilePic}>
-                        Update
-                    </button>
+                    <div className='flex gap-2'>
+                        <label htmlFor='file-input' className='cursor-pointer'>
+                            Update Profile Pic
+                        </label>
+                        <input type='file' id='file-input' className='file-input' onChange={onFileSelect} />
+                        <button className='contained-btn' onClick={updateProfilePic}>
+                            Update
+                        </button>
+                    </div>
                 </div>
             </div>
         )

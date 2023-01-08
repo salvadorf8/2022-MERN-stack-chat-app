@@ -55,7 +55,7 @@ io.on('connection', (socket) => {
             onlineUsers.push(userId);
         }
 
-        io.emit('online-users', onlineUsers);
+        io.emit('online-users-updated', onlineUsers);
     });
 });
 

@@ -57,15 +57,15 @@ const ProtectedRoute = ({ children }) => {
                         SHEYCHAT
                     </h1>
                 </div>
-                <div className='flex gap-1 text-md items-center text-white'>
+                <div className='flex gap-2 text-md items-center bg-white p-2 rounded'>
                     {user?.profilePic && <img src={user?.profilePic} alt='profile pic' className='h-8 w-8 rounded-full object-cover' />}
-                    {!user?.profilePic && <i className='ri-shield-user-line text-white'></i>}
+                    {!user?.profilePic && <i className='ri-shield-user-line text-primary'></i>}
 
-                    <h1 className='underline text-white cursor-pointer' onClick={() => navigate('/profile')}>
+                    <h1 className='underline text-primary cursor-pointer' onClick={() => navigate('/profile')}>
                         {user?.name}
                     </h1>
                     <i
-                        className='ri-logout-circle-r-line ml-5 text-xl cursor-pointer text-white'
+                        className='ri-logout-circle-r-line ml-5 text-xl cursor-pointer text-primary'
                         onClick={() => {
                             localStorage.removeItem('token');
                             navigate('/login');

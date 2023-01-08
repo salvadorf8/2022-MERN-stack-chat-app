@@ -32,7 +32,7 @@ const ChatArea = ({ socket }) => {
             socket.emit('send-message', {
                 ...message,
                 members: selectedChat.members.map((mem) => mem._id),
-                createdAt: moment(selectedChat.createdAt).format('DD-MM-YYYY hh:mm:ss'),
+                createdAt: moment().format('DD-MM-YYYY hh:mm:ss'),
                 read: false
             });
 
@@ -77,9 +77,10 @@ const ChatArea = ({ socket }) => {
         try {
             dispatch(ShowLoader());
             const response = await GetMessages(selectedChat._id);
-
             dispatch(HideLoader());
-            setMessages(response.data);
+            if (response.success) {
+                setMessages(response.data);
+            }
         } catch (error) {
             dispatch(HideLoader());
             toast.error(error.message);
@@ -122,7 +123,7 @@ const ChatArea = ({ socket }) => {
             // reason for the if statement is to fix issue where messages were being sent to everyone....
             // only send to the matching chat
             if (tempSelectedChat._id === message.chat) {
-                setMessages((prev) => [...prev, message]);
+                setMessages((prevMessages) => [...prevMessages, message]);
             }
 
             // reason for the if statement is to fix issue where reciever has chat opened, but still getting unread notification
@@ -161,8 +162,8 @@ const ChatArea = ({ socket }) => {
                 // setMessages(updatedMessages);
 
                 // has to be written like this to get the previous state
-                setMessages((prev) => {
-                    return prev.map((message) => {
+                setMessages((prevMessages) => {
+                    return prevMessages.map((message) => {
                         return {
                             ...message,
                             read: true
@@ -254,11 +255,11 @@ const ChatArea = ({ socket }) => {
                 )}
                 <div className='flex gap-2 text-xl'>
                     <label for='file'>
-                        <i className='ri-link cursor-pointer text-xl'></i>
+                        <i className='ri-link cursor-pointer text-xl' typeof='file'></i>
                         <input type='file' id='file' style={{ display: 'none' }} accept='image/gif, image/jpeg, image/jpg, image/png' onChange={onUploadImageClick} />
                     </label>
 
-                    <i className='ri-emotion-line cursor-pointer text-xl' onClick={() => setShowEmojiPicker(true)}></i>
+                    <i className='ri-emotion-line cursor-pointer text-xl' onClick={() => setShowEmojiPicker(!showEmojiPicker)}></i>
                 </div>
                 <input
                     type='text'

@@ -1,9 +1,9 @@
-const User = require('../models/user.model');
 const router = require('express').Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const cloudinary = require('../cloudinary');
 
+const User = require('../models/user.model');
 const authMiddleware = require('../middlewares/auth.middleware');
 
 // user registration
@@ -12,7 +12,10 @@ router.post('/register', async (req, res) => {
         const user = await User.findOne({ email: req.body.email });
 
         if (user) {
-            res.status(422).send({ success: false, message: 'User already exists' });
+            res.status(422).send({
+                success: false,
+                message: 'User already exists'
+            });
         }
 
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
@@ -22,9 +25,15 @@ router.post('/register', async (req, res) => {
 
         await newUser.save();
 
-        res.send({ success: true, message: 'User created successfully' });
+        res.send({
+            success: true,
+            message: 'User created successfully'
+        });
     } catch (error) {
-        res.send({ success: false, message: error.message });
+        res.send({
+            success: false,
+            message: error.message
+        });
     }
 });
 
@@ -55,9 +64,16 @@ router.post('/login', async (req, res) => {
             expiresIn: '1d'
         });
 
-        res.send({ success: true, message: 'User logged in successfully', data: token });
+        res.send({
+            success: true,
+            message: 'User logged in successfully',
+            data: token
+        });
     } catch (error) {
-        res.send({ success: false, message: error.message });
+        res.send({
+            success: false,
+            message: error.message
+        });
     }
 });
 
@@ -65,15 +81,24 @@ router.post('/login', async (req, res) => {
 router.get('/get-current-user', authMiddleware, async (req, res) => {
     try {
         const user = await User.findOne({ _id: req.body.userId });
-        res.send({ success: true, message: 'User fetched successfully ', data: user });
+
+        res.send({
+            success: true,
+            message: 'User fetched successfully ',
+            data: user
+        });
     } catch (error) {
-        res.send({ success: false, message: error.message });
+        res.send({
+            success: false,
+            message: error.message
+        });
     }
 });
 
 router.get('/get-all-users', authMiddleware, async (req, res) => {
     try {
         const allUsers = await User.find({ _id: { $ne: req.body.userId } });
+
         res.send({
             success: true,
             message: 'Users fetched successfully',
@@ -101,7 +126,11 @@ router.post('/update-profile-picture', authMiddleware, async (req, res) => {
         // update user profile picture
         const user = await User.findOneAndUpdate({ _id: req.body.userId }, { profilePic: uploadedImage.secure_url }, { new: true });
 
-        res.send({ success: true, message: 'Profile picture updated successfully', data: user });
+        res.send({
+            success: true,
+            message: 'Profile picture updated successfully',
+            data: user
+        });
     } catch (error) {
         res.send({
             success: false,

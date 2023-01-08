@@ -19,7 +19,7 @@ const Home = () => {
             socket.emit('join-room', user._id);
             socket.emit('came-online', user._id);
 
-            socket.on('online-users', (users) => {
+            socket.on('online-users-updated', (users) => {
                 setOnlineUsers(users);
             });
         }
@@ -29,9 +29,19 @@ const Home = () => {
         <div className='flex gap-5'>
             <div className='w-96 '>
                 <UserSearch searchKey={searchKey} setSearchKey={setSearchKey} />
-                <UsersList searchKey={searchKey} socket={socket} onlineUsers={onlineUsers} />
+                <UsersList searchKey={searchKey} socket={socket} onlineUsers={onlineUsers} setSearchKey={setSearchKey} />
             </div>
-            <div className='w-full'>{selectedChat && <ChatArea socket={socket} />}</div>
+            {selectedChat && (
+                <div className='w-full'>
+                    <ChatArea socket={socket} />
+                </div>
+            )}
+            {!selectedChat && (
+                <div className='w-full h-[80vh] items-center justify-center flex bg-white flex-col'>
+                    <img src='https://www.pngmart.com/files/16/Speech-Chat-Icon-Transparent-PNG.png' alt='' className='w-96 h-96' />
+                    <h1 className='text-2xl font-semibold text-gray-500'>Select a user to chat</h1>
+                </div>
+            )}
         </div>
     );
 };
