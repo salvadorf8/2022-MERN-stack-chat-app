@@ -36,8 +36,9 @@ io.on('connection', (socket) => {
     });
 
     // send message to clients (who are present in members array)
-    socket.on('send-message', (message) => {
-        io.to(message.members[0]).to(message.members[1]).emit('receive-message', message);
+    socket.on('send-message', ({ message, members }) => {
+        io.to(members[0]).to(members[1]).emit('received-message', message);
+        io.to(members[0]).to(members[1]).emit('update-chat-list-with-received-message', message);
     });
 
     socket.on('clear-unread-messages', (data) => {

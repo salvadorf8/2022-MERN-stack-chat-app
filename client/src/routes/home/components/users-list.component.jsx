@@ -120,12 +120,13 @@ const UsersList = ({ searchKey, socket, onlineUsers, setSearchKey }) => {
      */
 
     useEffect(() => {
-        socket.on('receive-message', async (message) => {
+        socket.on('update-chat-list-with-received-message', async (message) => {
             // if the chat area opened is not equal to chat in message,
             // then increase unread messages by 1 and update last message
             const tempSelectedChat = store.getState().userReducer.selectedChat;
             let tempAllChats = store.getState().userReducer.allChats;
 
+            // if user signed in but has not started no chats yet.
             if (!tempAllChats.length) {
                 tempAllChats = await getAllChats();
                 dispatch(SetAllChats(tempAllChats.data));
@@ -162,6 +163,7 @@ const UsersList = ({ searchKey, socket, onlineUsers, setSearchKey }) => {
             {getData().map((chatObjOrUserObj) => {
                 let userObj = chatObjOrUserObj;
 
+                // if it has members, the its a chat object
                 if (chatObjOrUserObj.members) {
                     userObj = chatObjOrUserObj.members.find((mem) => mem._id !== user._id);
                 }

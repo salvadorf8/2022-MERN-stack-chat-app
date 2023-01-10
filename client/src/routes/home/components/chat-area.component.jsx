@@ -21,23 +21,22 @@ const ChatArea = ({ socket }) => {
 
     const sendNewMessage = async (image = '') => {
         try {
-            const message = {
+            let message = {
                 chat: selectedChat._id,
                 sender: user._id,
                 text: newMessage,
                 image
             };
 
-            // send message to server using socket
-            socket.emit('send-message', {
-                ...message,
-                members: selectedChat.members.map((mem) => mem._id),
-                createdAt: moment().format('DD-MM-YYYY hh:mm:ss'),
-                read: false
-            });
-
             // send message to server to store into the DB
             const response = await sendMessage(message);
+            message = { ...message, ...response.data };
+
+            // send message to server using socket
+            socket.emit('send-message', {
+                message,
+                members: selectedChat.members.map((mem) => mem._id)
+            });
 
             if (response.success) {
                 setNewMessage('');
@@ -115,9 +114,9 @@ const ChatArea = ({ socket }) => {
             clearUnreadMessages();
         }
 
-        // receive message from server using socket
+        // received message from server using socket
         // reason for the .off().on() was to fix issue where multiple messages were being received and printed
-        socket.off('receive-message').on('receive-message', (message) => {
+        socket.off('received-message').on('received-message', (message) => {
             const tempSelectedChat = store.getState().userReducer.selectedChat;
 
             // reason for the if statement is to fix issue where messages were being sent to everyone....
@@ -226,7 +225,7 @@ const ChatArea = ({ socket }) => {
                         const isCurrentUserASender = message.sender === user._id;
 
                         return (
-                            <div className={`flex ${isCurrentUserASender && 'justify-end'}`}>
+                            <div className={`flex ${isCurrentUserASender && 'justify-end'}`} key={message._id}>
                                 <div className='flex flex-col gap-1'>
                                     {message.text && <h1 className={`${isCurrentUserASender ? 'bg-primary text-white rounded-bl-none' : 'bg-gray-300 text-primary rounded-tr-none'} p-2 rounded-xl `}>{message.text}</h1>}
 
@@ -254,9 +253,9 @@ const ChatArea = ({ socket }) => {
                     </div>
                 )}
                 <div className='flex gap-2 text-xl'>
-                    <label for='file'>
+                    <label htmlFor='img-file'>
                         <i className='ri-link cursor-pointer text-xl' typeof='file'></i>
-                        <input type='file' id='file' style={{ display: 'none' }} accept='image/gif, image/jpeg, image/jpg, image/png' onChange={onUploadImageClick} />
+                        <input type='file' id='img-file' style={{ display: 'none' }} accept='image/gif, image/jpeg, image/jpg, image/png' onChange={onUploadImageClick} />
                     </label>
 
                     <i className='ri-emotion-line cursor-pointer text-xl' onClick={() => setShowEmojiPicker(!showEmojiPicker)}></i>
