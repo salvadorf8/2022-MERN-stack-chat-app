@@ -41,8 +41,8 @@ io.on('connection', (socket) => {
         io.to(members[0]).to(members[1]).emit('update-chat-list-with-received-message', message);
     });
 
-    socket.on('clear-unread-messages', (data) => {
-        io.to(data.members[0]).to(data.members[1]).emit('unread-messages-cleared', data);
+    socket.on('clear-unread-messages', ({ chatId, members }) => {
+        io.to(members[0]).to(members[1]).emit('unread-messages-cleared', chatId);
     });
 
     // typing event

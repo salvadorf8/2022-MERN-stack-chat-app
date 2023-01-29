@@ -50,7 +50,7 @@ const ChatArea = ({ socket }) => {
     const clearUnreadMessages = async () => {
         try {
             socket.emit('clear-unread-messages', {
-                chat: selectedChat._id,
+                chatId: selectedChat._id,
                 members: selectedChat.members.map((mem) => mem._id)
             });
 
@@ -121,6 +121,7 @@ const ChatArea = ({ socket }) => {
 
             // reason for the if statement is to fix issue where messages were being sent to everyone....
             // only send to the matching chat
+            // TODO: what is the reason I'm getting the latest prevMessages before appending a new message
             if (tempSelectedChat._id === message.chat) {
                 setMessages((prevMessages) => [...prevMessages, message]);
             }
@@ -133,14 +134,14 @@ const ChatArea = ({ socket }) => {
         });
 
         // clear unread messages from server using socket
-        socket.on('unread-messages-cleared', (data) => {
+        socket.on('unread-messages-cleared', (chatId) => {
             const tempAllChats = store.getState().userReducer.allChats;
             const tempSelectedChat = store.getState().userReducer.selectedChat;
 
-            if (data.chat === tempSelectedChat._id) {
+            if (chatId === tempSelectedChat._id) {
                 // update unread messages count in selected chat
                 const updatedChats = tempAllChats.map((chat) => {
-                    if (chat._id === data.chat) {
+                    if (chat._id === chatId) {
                         return {
                             ...chat,
                             unreadMessages: 0
