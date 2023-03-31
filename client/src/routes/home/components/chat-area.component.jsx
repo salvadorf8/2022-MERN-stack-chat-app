@@ -6,9 +6,9 @@ import EmojiPicker from 'emoji-picker-react';
 
 import { showLoader, hideLoader } from '../../../redux/loaderSlice';
 import { setAllChats } from '../../../redux/userSlice';
+import { store } from '../../../redux/store';
 import { sendMessage, getMessagesById } from '../../../api-calls/messages';
 import { clearChatMessages } from '../../../api-calls/chats';
-import { store } from '../../../redux/store';
 
 const ChatArea = ({ socket }) => {
     const dispatch = useDispatch();
