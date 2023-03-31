@@ -4,11 +4,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import moment from 'moment';
 import EmojiPicker from 'emoji-picker-react';
 
-import { ShowLoader, HideLoader } from '../../../redux/loaderSlice';
-import { SetAllChats } from '../../../redux/userSlice';
-import { sendMessage, GetMessages } from '../../../api-calls/messages';
-import { ClearChatMessages } from '../../../api-calls/chats';
-import store from '../../../redux/store';
+import { showLoader, hideLoader } from '../../../redux/loaderSlice';
+import { setAllChats } from '../../../redux/userSlice';
+import { sendMessage, getMessagesById } from '../../../api-calls/messages';
+import { clearChatMessages } from '../../../api-calls/chats';
+import { store } from '../../../redux/store';
 
 const ChatArea = ({ socket }) => {
     const dispatch = useDispatch();
@@ -54,7 +54,7 @@ const ChatArea = ({ socket }) => {
                 members: selectedChat.members.map((mem) => mem._id)
             });
 
-            const response = await ClearChatMessages(selectedChat._id);
+            const response = await clearChatMessages(selectedChat._id);
 
             if (response.success) {
                 const updatedChats = allChats.map((chat) => {
@@ -65,7 +65,7 @@ const ChatArea = ({ socket }) => {
                     return chat;
                 });
 
-                dispatch(SetAllChats(updatedChats));
+                dispatch(setAllChats(updatedChats));
             }
         } catch (error) {
             toast.error(error.message);
@@ -74,14 +74,14 @@ const ChatArea = ({ socket }) => {
 
     const getMessages = async () => {
         try {
-            dispatch(ShowLoader());
-            const response = await GetMessages(selectedChat._id);
-            dispatch(HideLoader());
+            dispatch(showLoader());
+            const response = await getMessagesById(selectedChat._id);
+            dispatch(hideLoader());
             if (response.success) {
                 setMessages(response.data);
             }
         } catch (error) {
-            dispatch(HideLoader());
+            dispatch(hideLoader());
             toast.error(error.message);
         }
     };
@@ -149,7 +149,7 @@ const ChatArea = ({ socket }) => {
                     }
                     return chat;
                 });
-                dispatch(SetAllChats(updatedChats));
+                dispatch(setAllChats(updatedChats));
 
                 // set all messages as read
                 // ------ keep in mind, we cannot access state in socket.io ------
@@ -195,7 +195,11 @@ const ChatArea = ({ socket }) => {
 
     const onUploadImageClick = (e) => {
         const file = e.target.files[0];
-        const reader = new FileReader(file);
+        const reader = new FileReader();
+        // readAsDataURL() method is called on it, passing in the file object as an argument.
+        // Once the file has been read, the onloadend callback function is called,
+        // and the result property of the FileReader object contains the data URL
+        // representing the file's data as a base64-encoded string.
         reader.readAsDataURL(file);
 
         reader.onloadend = async () => {

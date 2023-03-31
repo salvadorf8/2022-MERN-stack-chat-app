@@ -3,7 +3,7 @@ import { toast } from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { ShowLoader, HideLoader } from '../../redux/loaderSlice';
+import { showLoader, hideLoader } from '../../redux/loaderSlice';
 import { loginUser } from '../../api-calls/users';
 
 const Login = () => {
@@ -16,9 +16,9 @@ const Login = () => {
 
     const login = async () => {
         try {
-            dispatch(ShowLoader());
+            dispatch(showLoader());
             const response = await loginUser(user);
-            dispatch(HideLoader());
+            dispatch(hideLoader());
             if (response.success) {
                 toast.success(response.message);
                 localStorage.setItem('token', response.data);
@@ -28,7 +28,7 @@ const Login = () => {
                 toast.error(response.message);
             }
         } catch (error) {
-            dispatch(HideLoader());
+            dispatch(hideLoader());
             toast.error(error.message);
         }
     };

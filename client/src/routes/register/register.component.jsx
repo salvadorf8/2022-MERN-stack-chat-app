@@ -3,7 +3,7 @@ import { toast } from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { HideLoader, ShowLoader } from '../../redux/loaderSlice';
+import { hideLoader, showLoader } from '../../redux/loaderSlice';
 import { registerUser } from '../../api-calls/users';
 
 const Register = () => {
@@ -17,16 +17,16 @@ const Register = () => {
 
     const register = async () => {
         try {
-            dispatch(ShowLoader());
+            dispatch(showLoader());
             const response = await registerUser(user);
-            dispatch(HideLoader());
+            dispatch(hideLoader());
             if (response.success) {
                 toast.success(response.message);
             } else {
                 toast.error(response.message);
             }
         } catch (error) {
-            dispatch(HideLoader());
+            dispatch(hideLoader());
             toast.error(error.message);
         }
     };

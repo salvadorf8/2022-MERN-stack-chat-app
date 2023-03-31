@@ -3,32 +3,36 @@ import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import moment from 'moment';
 
-import { ShowLoader, HideLoader } from '../../../redux/loaderSlice';
-import { SetAllChats, SetSelectedChat } from '../../../redux/userSlice';
+import { showLoader, hideLoader } from '../../../redux/loaderSlice';
+import { setAllChats, setSelectedChat } from '../../../redux/userSlice';
 import { createNewChat, getAllChats } from '../../../api-calls/chats';
-import store from '../../../redux/store';
+import { store } from '../../../redux/store';
 
 const UsersList = ({ searchKey, socket, onlineUsers, setSearchKey }) => {
     const dispatch = useDispatch();
     const { allUsers, allChats, user, selectedChat } = useSelector((state) => state.userReducer);
+    // NOTE: can also be written if just getting an array
+    // const allUsers = useSelector((state) => {
+    //     return state.allUsers
+    // });
 
     const handleCreateNewChat = async (recipientUserId) => {
         try {
-            dispatch(ShowLoader());
+            dispatch(showLoader());
             const response = await createNewChat([user._id, recipientUserId]);
-            dispatch(HideLoader());
+            dispatch(hideLoader());
             if (response.success) {
                 toast.success(response.message);
                 const newChat = response.data;
                 const updatedChats = [...allChats, newChat];
-                dispatch(SetAllChats(updatedChats));
-                dispatch(SetSelectedChat(newChat));
+                dispatch(setAllChats(updatedChats));
+                dispatch(setSelectedChat(newChat));
                 setSearchKey('');
             } else {
                 toast.error(response.message);
             }
         } catch (error) {
-            dispatch(HideLoader());
+            dispatch(hideLoader());
             toast.error(error.message);
         }
     };
@@ -37,7 +41,7 @@ const UsersList = ({ searchKey, socket, onlineUsers, setSearchKey }) => {
         const chat = allChats.find((chat) => chat.members.map((mem) => mem._id).includes(user._id) && chat.members.map((mem) => mem._id).includes(recipientUserId));
 
         if (chat) {
-            dispatch(SetSelectedChat(chat));
+            dispatch(setSelectedChat(chat));
         }
     };
 
@@ -129,7 +133,7 @@ const UsersList = ({ searchKey, socket, onlineUsers, setSearchKey }) => {
             // if user signed in but has not started no chats yet.
             if (!tempAllChats.length) {
                 tempAllChats = await getAllChats();
-                dispatch(SetAllChats(tempAllChats.data));
+                dispatch(setAllChats(tempAllChats.data));
             }
 
             // if the received message is not part of a currently selected chat
@@ -154,7 +158,7 @@ const UsersList = ({ searchKey, socket, onlineUsers, setSearchKey }) => {
 
             tempAllChats = [latestChat, ...otherChats];
 
-            dispatch(SetAllChats(tempAllChats));
+            dispatch(setAllChats(tempAllChats));
         });
     }, []);
 
@@ -163,7 +167,7 @@ const UsersList = ({ searchKey, socket, onlineUsers, setSearchKey }) => {
             {getData().map((chatObjOrUserObj) => {
                 let userObj = chatObjOrUserObj;
 
-                // if it has members, the its a chat object
+                // if it has members, then it is a chat object
                 if (chatObjOrUserObj.members) {
                     userObj = chatObjOrUserObj.members.find((mem) => mem._id !== user._id);
                 }

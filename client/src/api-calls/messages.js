@@ -9,7 +9,7 @@ export const sendMessage = async (message) => {
     }
 };
 
-export const GetMessages = async (chatId) => {
+export const getMessagesById = async (chatId) => {
     try {
         const response = await axiosInstance.get(`/api/messages/get-all-messages/${chatId}`);
         return response.data;

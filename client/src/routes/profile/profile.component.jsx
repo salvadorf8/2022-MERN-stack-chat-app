@@ -4,8 +4,8 @@ import { toast } from 'react-hot-toast';
 import moment from 'moment';
 
 import { updateProfilePicture } from '../../api-calls/users';
-import { ShowLoader, HideLoader } from '../../redux/loaderSlice';
-import { SetUser } from '../../redux/userSlice';
+import { showLoader, hideLoader } from '../../redux/loaderSlice';
+import { setUser } from '../../redux/userSlice';
 
 const Profile = () => {
     const dispatch = useDispatch();
@@ -24,17 +24,17 @@ const Profile = () => {
 
     const updateProfilePic = async () => {
         try {
-            dispatch(ShowLoader());
+            dispatch(showLoader());
             const response = await updateProfilePicture(image);
-            dispatch(HideLoader());
+            dispatch(hideLoader());
             if (response.success) {
                 toast.success('Profile Pic updated');
-                dispatch(SetUser(response.data));
+                dispatch(setUser(response.data));
             } else {
                 toast.error(response.error);
             }
         } catch (error) {
-            dispatch(HideLoader());
+            dispatch(hideLoader());
             toast.error(error.message);
         }
     };

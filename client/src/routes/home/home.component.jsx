@@ -6,7 +6,7 @@ import UserSearch from './components/users-search.component';
 import ChatArea from './components/chat-area.component';
 import UsersList from './components/users-list.component';
 
-// moved to be global, because it did not work inside the const Home
+// moved to be global, because it did not work inside the "Home" arrow function
 const socket = io(process.env.SOCKET_IO_SERVER_URL);
 
 const Home = () => {

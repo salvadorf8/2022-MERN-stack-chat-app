@@ -4,8 +4,8 @@ import { toast } from 'react-hot-toast';
 import { useDispatch, useSelector } from 'react-redux';
 import { io } from 'socket.io-client';
 
-import { ShowLoader, HideLoader } from '../redux/loaderSlice';
-import { SetAllUsers, SetUser, SetAllChats } from '../redux/userSlice';
+import { showLoader, hideLoader } from '../redux/loaderSlice';
+import { setAllUsers, setUser, setAllChats } from '../redux/userSlice';
 import { getAllUsers, getCurrentUser } from '../api-calls/users';
 import { getAllChats } from '../api-calls/chats';
 
@@ -19,22 +19,24 @@ const ProtectedRoute = ({ children }) => {
 
     const fetchCurrentUser = async () => {
         try {
-            dispatch(ShowLoader());
+            // NOTE: showLoader() will create an action for you with type and payload
+            // technically you are distaching an action
+            dispatch(showLoader());
             const response = await getCurrentUser();
             const allUsersResponse = await getAllUsers();
             const allChatsResponse = await getAllChats();
-            dispatch(HideLoader());
+            dispatch(hideLoader());
             if (response.success) {
-                dispatch(SetUser(response.data));
-                dispatch(SetAllUsers(allUsersResponse.data));
-                dispatch(SetAllChats(allChatsResponse.data));
+                dispatch(setUser(response.data));
+                dispatch(setAllUsers(allUsersResponse.data));
+                dispatch(setAllChats(allChatsResponse.data));
             } else {
                 toast.error(response.message);
                 localStorage.removeItem('token');
                 navigate('/login');
             }
         } catch (error) {
-            dispatch(HideLoader());
+            dispatch(hideLoader());
             toast.error(error.message);
             localStorage.removeItem('token');
             navigate('/login');

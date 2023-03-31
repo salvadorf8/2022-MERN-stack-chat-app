@@ -10,20 +10,26 @@ const userSlice = createSlice({
     },
 
     reducers: {
-        SetUser: (state, action) => {
+        // REMEMBER: Reducers in a slice only 'see' their own part of the overall state object
+        // state means 'the state I'm in control of'
+        // Everywhere else, 'state' means 'the whole state object in the store'
+        setUser: (state, action) => {
+            // Inner is used by redux toolkit
             state.user = action.payload;
         },
-        SetAllUsers: (state, action) => {
+        setAllUsers: (state, action) => {
             state.allUsers = action.payload;
         },
-        SetAllChats: (state, action) => {
+        setAllChats: (state, action) => {
             state.allChats = action.payload;
         },
-        SetSelectedChat: (state, action) => {
+        setSelectedChat: (state, action) => {
             state.selectedChat = action.payload;
         }
     }
 });
 
-export const { SetUser, SetAllUsers, SetAllChats, SetSelectedChat } = userSlice.actions;
+// when calling setUser within the application, it will create an action for you
+// example: {type: user.setUser, payload: user}
+export const { setUser, setAllUsers, setAllChats, setSelectedChat } = userSlice.actions;
 export default userSlice.reducer;

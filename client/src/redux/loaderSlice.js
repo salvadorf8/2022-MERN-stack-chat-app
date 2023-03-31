@@ -6,14 +6,14 @@ const loaderSlice = createSlice({
         loader: false
     },
     reducers: {
-        ShowLoader: (state) => {
+        showLoader: (state) => {
             state.loader = true;
         },
-        HideLoader: (state) => {
+        hideLoader: (state) => {
             state.loader = false;
         }
     }
 });
 
-export const { ShowLoader, HideLoader } = loaderSlice.actions;
+export const { showLoader, hideLoader } = loaderSlice.actions;
 export default loaderSlice.reducer;
